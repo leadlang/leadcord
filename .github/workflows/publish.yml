@@ -5,7 +5,7 @@ on:
     branches:
       - main
     paths:
-      - ./leadcord/Cargo.toml
+      - "**/*/Cargo.toml"
   workflow_dispatch:
 
 permissions: write-all
