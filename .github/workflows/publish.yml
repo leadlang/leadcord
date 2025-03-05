@@ -1,0 +1,249 @@
+name: Build Outputs
+
+on:
+  push:
+    branches:
+      - main
+    paths: |
+      ./leadcord/Cargo.toml
+  workflow_dispatch:
+
+permissions: write-all
+
+jobs:
+  tag:
+    name: Get Tag + Release
+    runs-on: ubuntu-24.04
+    outputs:
+      tag: ${{ steps.ver.outputs.TAG_NAME }}
+      upload: ${{ steps.release.outputs.upload_url }}
+      id: ${{ steps.release.outputs.id }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup NodeJS
+        uses: actions/setup-node@v4
+
+      - name: Get Tag
+        run: |
+          npm i -g pnpm
+          pnpm install
+          node ver.js
+          chmod 777 ./publish
+          ./publish
+        id: ver
+
+      - name: Create Release
+        uses: shogo82148/actions-create-release@v1
+        id: release
+        with:
+          tag_name: ${{ steps.ver.outputs.TAG_NAME }}
+          release_name: LeadCord ${{ steps.ver.outputs.TAG_NAME }}
+          generate_release_notes: true
+          draft: true
+
+  publish:
+    name: Publish
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - target: x86_64-pc-windows-msvc
+            os: windows-latest
+          - target: i686-pc-windows-msvc
+            os: windows-latest
+          - target: aarch64-pc-windows-msvc
+            os: windows-latest
+          - target: x86_64-unknown-linux-gnu
+            os: ubuntu-24.04
+          - target: i686-unknown-linux-gnu
+            os: ubuntu-24.04
+          - target: aarch64-unknown-linux-gnu
+            os: ubuntu-24.04
+          - target: armv7-unknown-linux-gnueabi
+            os: ubuntu-24.04
+          - target: x86_64-apple-darwin
+            os: macos-latest
+          - target: aarch64-apple-darwin
+            os: macos-latest
+          - os: ubuntu-latest
+            target: x86_64-unknown-linux-musl
+          - os: ubuntu-latest
+            target: aarch64-unknown-linux-musl
+          - os: ubuntu-latest
+            target: i686-unknown-linux-gnu
+          - os: ubuntu-latest
+            target: armv7-unknown-linux-gnueabi
+          - os: ubuntu-latest
+            target: armv7-unknown-linux-gnueabihf
+          - os: ubuntu-latest
+            target: arm-unknown-linux-gnueabi
+          - os: ubuntu-latest
+            target: arm-unknown-linux-gnueabihf
+          - os: ubuntu-latest
+            target: armv5te-unknown-linux-gnueabi
+          - os: ubuntu-latest
+            target: armv5te-unknown-linux-musleabi
+          - os: ubuntu-latest
+            target: armv7-unknown-linux-musleabi
+          - os: ubuntu-latest
+            target: armv7-unknown-linux-musleabihf
+          - os: ubuntu-latest
+            target: arm-unknown-linux-musleabi
+          - os: ubuntu-latest
+            target: arm-unknown-linux-musleabihf
+          - os: ubuntu-latest
+            target: mips-unknown-linux-gnu
+          - os: ubuntu-latest
+            target: mips64-unknown-linux-gnuabi64
+          - os: ubuntu-latest
+            target: mips64el-unknown-linux-gnuabi64
+          - os: ubuntu-latest
+            target: mipsel-unknown-linux-gnu
+          # MIPS MUSL (to be fixed)
+          # - os: ubuntu-latest
+          #   target: mips-unknown-linux-musl
+          # - os: ubuntu-latest
+          #   target: mips64-unknown-linux-muslabi64
+          # - os: ubuntu-latest
+          #   target: mips64el-unknown-linux-muslabi64
+          # - os: ubuntu-latest
+          #   target: mipsel-unknown-linux-musl
+          - os: ubuntu-latest
+            target: loongarch64-unknown-linux-gnu
+          - os: ubuntu-latest
+            target: loongarch64-unknown-linux-musl
+          - os: ubuntu-latest
+            target: powerpc-unknown-linux-gnu
+          - os: ubuntu-latest
+            target: powerpc64-unknown-linux-gnu
+          - os: ubuntu-latest
+            target: powerpc64le-unknown-linux-gnu
+          - os: ubuntu-latest
+            target: x86_64-unknown-freebsd
+          - os: ubuntu-latest
+            target: aarch64-unknown-freebsd
+          - os: ubuntu-latest
+            target: i686-unknown-freebsd
+          - os: ubuntu-latest
+            target: x86_64-unknown-netbsd
+          - os: ubuntu-latest
+            target: x86_64-unknown-illumos
+          - os: ubuntu-latest
+            target: x86_64-unknown-dragonfly
+          - os: ubuntu-latest
+            target: aarch64-linux-android
+          - os: ubuntu-latest
+            target: armv7-linux-androideabi
+          - os: ubuntu-latest
+            target: i686-linux-android
+          - os: ubuntu-latest
+            target: x86_64-linux-android
+
+    runs-on: ${{ matrix.os }}
+
+    needs: tag
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup NodeJS
+        uses: actions/setup-node@v4
+
+      - name: Install Rust
+        uses: actions-rust-lang/setup-rust-toolchain@v1
+        with:
+          toolchain: nightly
+          components: rust-src
+
+      - name: Install Deps
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt update
+
+          sudo apt install podman gcc-aarch64-linux-gnu clang lld
+
+          sudo apt install zip
+
+      - name: Build for target
+        shell: pwsh
+        run: |
+          $env:RUSTFLAGS = ""
+          $RUSTFLAGS = ""
+
+          cargo install cross --git https://github.com/cross-rs/cross
+
+          if ($env:OS -eq "Linux") {
+            "Using cross"
+            $env:BUILD_TARGET = "$env:BUILD_TARGET-cross"
+          }
+
+          ./setup
+          ./build
+        continue-on-error: false
+        env:
+          BUILD_TARGET: ${{ matrix.target }}
+          OS: ${{ runner.os }}
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.target }}
+          path: ${{ matrix.target }}.zip
+
+  build_leadpkg:
+    name: Build Leadpkg
+
+    runs-on: ubuntu-24.04
+
+    needs: [tag, publish]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: actions-rust-lang/setup-rust-toolchain@v1
+        with:
+          toolchain: nightly
+          components: rust-src
+
+      - name: Download
+        uses: actions/download-artifact@v4
+        with:
+          merge-multiple: true
+
+      - name: Build package
+        shell: pwsh
+        run: |
+          ./setup
+          ./finalize
+        env:
+          TARGET: x86_64-unknown-linux-gnu
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          path: ./leadpkg.zip
+          name: leadpkg
+
+      - name: Publish Package
+        uses: shogo82148/actions-upload-release-asset@v1
+        with:
+          asset_path: ./leadpkg.zip
+          asset_name: leadpkg.zip
+          upload_url: ${{ needs.tag.outputs.upload }}
+
+      - name: Undraft release
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.repos.updateRelease({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              release_id: ${{ needs.tag.outputs.id }},
+              draft: false
+            })

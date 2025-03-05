@@ -1,0 +1,16 @@
+[package]
+name = "leadcord"
+version = "0.1.0"
+edition = "2024"
+
+[lib]
+name = "leadcord"
+crate-type = ["cdylib"]
+
+[dependencies]
+lead_lang_interpreter = { git = "https://github.com/leadlang/lead" }
+lead_lang_macros = { git = "https://github.com/leadlang/lead" }
+serenity = "0.12.4"
+
+[patch.crates-io]
+lead_lang_interpreter = { git = "https://github.com/leadlang/lead" }
