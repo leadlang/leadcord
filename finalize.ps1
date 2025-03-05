@@ -39,7 +39,7 @@ New-Item dist -ItemType Directory -ErrorAction SilentlyContinue
 Copy-Item -Path "./leadcord/src" -Destination "./dist/src/src" -Recurse -Force
 Copy-Item -Path ./leadcord/* -Include *.toml -Destination "./dist/src/" -Force
 
-New-Item "./dist/lib" -ItemType Directory -ErrorAction Suspend
+New-Item "./dist/lib" -ItemType Directory
 
 foreach ($target in $toolchains) {
   if (Test-Path -Path "./$target.zip") {
