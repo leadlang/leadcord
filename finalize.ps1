@@ -15,6 +15,14 @@ if ($null -eq $authors) {
   $authors = @()
 }
 
+if ($null -eq $keywords) {
+  $keywords = @()
+}
+
+if ($null -eq $description) {
+  $description = ""
+}
+
 $metadata = @{
   package     = $package
   version     = $version
