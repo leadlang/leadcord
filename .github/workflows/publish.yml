@@ -180,6 +180,13 @@ jobs:
           name: ${{ matrix.target }}
           path: ${{ matrix.target }}.zip
 
+      - name: Publish Package
+        uses: shogo82148/actions-upload-release-asset@v1
+        with:
+          asset_path: ${{ matrix.target }}.zip
+          asset_name: ${{ matrix.target }}.zip
+          upload_url: ${{ needs.tag.outputs.upload }}
+
   build_leadpkg:
     name: Build Leadpkg
 

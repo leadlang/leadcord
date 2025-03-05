@@ -21,6 +21,7 @@ $metadata = @{
   authors     = $authors
   description = $description
   keywords    = $keywords
+  uses_new    = True
   platforms   = @()
   type        = "dylib"
 }
@@ -30,14 +31,11 @@ New-Item dist -ItemType Directory -ErrorAction SilentlyContinue
 Copy-Item -Path "./leadcord/src" -Destination "./dist/src/src" -Recurse -Force
 Copy-Item -Path ./leadcord/* -Include *.toml -Destination "./dist/src/" -Force
 
-foreach ($target in $toolchains) {
-  try {
-    Expand-Archive -Path "$target.zip" -DestinationPath "./dist/lib/$target" -Force 
+New-Item "./dist/lib" -ItemType Directory -ErrorAction Suspend
 
+foreach ($target in $toolchains) {
+  if (Test-Path -Path "./$target.zip") {
     $metadata.platforms += $target
-  }
-  catch {
-    Remove-Item "./dist/lib/$target" -Recurse -Force
   }
 }
 
