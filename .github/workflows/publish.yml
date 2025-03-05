@@ -69,10 +69,10 @@ jobs:
             os: macos-latest
           - target: aarch64-apple-darwin
             os: macos-latest
-          - os: ubuntu-latest
-            target: x86_64-unknown-linux-musl
-          - os: ubuntu-latest
-            target: aarch64-unknown-linux-musl
+          # - os: ubuntu-latest
+          #   target: x86_64-unknown-linux-musl
+          # - os: ubuntu-latest
+          #   target: aarch64-unknown-linux-musl
           - os: ubuntu-latest
             target: i686-unknown-linux-gnu
           - os: ubuntu-latest
@@ -85,16 +85,16 @@ jobs:
             target: arm-unknown-linux-gnueabihf
           - os: ubuntu-latest
             target: armv5te-unknown-linux-gnueabi
-          - os: ubuntu-latest
-            target: armv5te-unknown-linux-musleabi
-          - os: ubuntu-latest
-            target: armv7-unknown-linux-musleabi
-          - os: ubuntu-latest
-            target: armv7-unknown-linux-musleabihf
-          - os: ubuntu-latest
-            target: arm-unknown-linux-musleabi
-          - os: ubuntu-latest
-            target: arm-unknown-linux-musleabihf
+          # - os: ubuntu-latest
+          #   target: armv5te-unknown-linux-musleabi
+          # - os: ubuntu-latest
+          #   target: armv7-unknown-linux-musleabi
+          # - os: ubuntu-latest
+          #   target: armv7-unknown-linux-musleabihf
+          # - os: ubuntu-latest
+          #   target: arm-unknown-linux-musleabi
+          # - os: ubuntu-latest
+          #   target: arm-unknown-linux-musleabihf
           - os: ubuntu-latest
             target: mips-unknown-linux-gnu
           - os: ubuntu-latest
@@ -114,8 +114,8 @@ jobs:
           #   target: mipsel-unknown-linux-musl
           - os: ubuntu-latest
             target: loongarch64-unknown-linux-gnu
-          - os: ubuntu-latest
-            target: loongarch64-unknown-linux-musl
+          # - os: ubuntu-latest
+          #   target: loongarch64-unknown-linux-musl
           - os: ubuntu-latest
             target: powerpc-unknown-linux-gnu
           - os: ubuntu-latest

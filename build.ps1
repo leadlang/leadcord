@@ -23,7 +23,7 @@ else {
 }
 
 Remove-Item -Recurse -Force build -ErrorAction SilentlyContinue
-Remove-Item "$target_to_use.zip" -ErrorAction SilentlyContinue
+Remove-Item "$target.zip" -ErrorAction SilentlyContinue
 
 New-Item build -ItemType Directory
 
@@ -35,4 +35,4 @@ Copy-Item -Path "$root/target/$target/release/*.dll*" -Destination "./build" -Re
 Copy-Item -Path "$root/target/$target/release/*.so*" -Destination "./build" -Recurse -ErrorAction SilentlyContinue
 Copy-Item -Path "$root/target/$target/release/*.dylib*" -Destination "./build" -Recurse -ErrorAction SilentlyContinue
 
-Compress-Archive -Path ./build/* -DestinationPath "$target_to_use.zip" -Verbose
+Compress-Archive -Path ./build/* -DestinationPath "$target.zip" -Verbose
