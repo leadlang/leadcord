@@ -19,7 +19,7 @@ if (!$cross) {
 else {
   "Using cross"
 
-  cross build --release --target $target --manifest-path "$root/Cargo.toml"
+  cross build --release --target $target --manifest-path "$root/Cargo.toml" -Z build-std
 }
 
 Remove-Item -Recurse -Force build -ErrorAction SilentlyContinue
