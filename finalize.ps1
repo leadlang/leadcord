@@ -21,7 +21,7 @@ $metadata = @{
   authors     = $authors
   description = $description
   keywords    = $keywords
-  uses_new    = True
+  uses_new    = $true
   platforms   = @()
   type        = "dylib"
 }
