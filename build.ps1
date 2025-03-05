@@ -11,6 +11,11 @@ catch {
   "Continuing without installing $target"
 }
 
+if ($target.Contains("-musl")) {
+  # CRT Static for MUSL targets
+  $env:RUSTFLAGS = "-C target-feature=-crt-static"
+}
+
 if (!$cross) {
   "Using cargo"
 

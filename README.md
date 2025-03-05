@@ -1,2 +1,3 @@
 # leadcord
-Discord Bot for Lead Language
+
+Discord Bot Library for Lead Language
