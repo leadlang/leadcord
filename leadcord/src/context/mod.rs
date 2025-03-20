@@ -31,10 +31,13 @@ macro_rules! prelude {
   usage: [
     (
       desc: "Set Presence",
-      code: "activity::status ->$context online/dnd/idle/invisible"
+      code: "activity::status $context online/dnd/idle/invisible"
     ),
   ],
-  notes: None
+  notes: None,
+  params: [
+    r"\$[a-z]* (online|dnd|idle|invisible)"
+  ]
 ))]
 fn set_status(event: &BufValue, status: &str) {
   let x = prelude!(event, file);
@@ -53,7 +56,7 @@ fn set_status(event: &BufValue, status: &str) {
   usage: [
     (
       desc: "Reset Presence",
-      code: "activity::reset ->$context activity_type $data"
+      code: "activity::reset $context activity_type $data"
     ),
   ],
   notes: None
@@ -69,12 +72,15 @@ fn reset_activity(event: &BufValue) {
   usage: [
     (
       desc: "Set Activity",
-      code: "activity::set ->$context activity_type $data"
+      code: "activity::set $context activity_type $data"
     ),
   ],
   notes: Some(
     "This function does not move $text\nTypes of activity: `streaming`, `competiting`, `playing, `listening`, `watching`, `custom`\n"
-  )
+  ),
+  params: [
+    r"\$[a-z0-9_]* (streaming|competiting|playing|listening|watching|custom) \$[a-z0-9_]*"
+  ]
 ))]
 fn set_activity(event: &BufValue, activity: &str, data: &BufValue) {
   let x = prelude!(event, file);
