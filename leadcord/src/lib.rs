@@ -6,21 +6,27 @@ use handler::Handler;
 use serenity::{Client, prelude::*};
 
 use interpreter::{
-  error, generate, module, pkg_name,
+  error, exports, module, phf, pkg_name,
+  tokio::runtime::{Builder, Runtime},
   types::{AnyWrapper, BufValue},
-  tokio::runtime::{Runtime, Builder},
 };
 use lead_lang_macros::{define, methods};
 
 mod handler;
 mod handlers;
 
-mod message;
 mod context;
+mod message;
 
 mod onready;
 
-pub(crate) static RUNTIME: LazyLock<Runtime> = LazyLock::new(|| Builder::new_multi_thread().worker_threads(1).enable_all().build().unwrap());
+pub(crate) static RUNTIME: LazyLock<Runtime> = LazyLock::new(|| {
+  Builder::new_multi_thread()
+    .worker_threads(1)
+    .enable_all()
+    .build()
+    .unwrap()
+});
 
 module! {
     LeadCordClient,
@@ -188,7 +194,8 @@ fn run(token: BufValue, intent: BufValue, handler: BufValue) {
   let builder = Client::builder(
     token,
     GatewayIntents::from_bits(intents).expect("Unable to construct Intents"),
-  ).event_handler(*handler);
+  )
+  .event_handler(*handler);
 
   let f = async move {
     let mut d = builder.await.expect("Cannot get client");
@@ -238,15 +245,15 @@ intents! {
   DIRECT_MESSAGE_POLLS 1 << 25
 }
 
-use message::MessageReader;
-use handlers::Handlers;
-use onready::ReadyReader;
 use context::Ctx;
+use handlers::Handlers;
+use message::MessageReader;
+use onready::OnReady;
 
-generate! {
-  LeadCordClient,
-  MessageReader,
-  Handlers,
-  ReadyReader,
-  Ctx
+exports! {
+  packages = LeadCordClient, MessageReader, Handlers;
+  runtimes = {
+    "ctx" = Ctx,
+    "ready" = OnReady
+  }
 }

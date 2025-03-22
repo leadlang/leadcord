@@ -1,6 +1,10 @@
 $discord: *import leadcord
 
-$token: env TOKEN
+$token: fmt "TOKEN"
+$token: env $token
+$token: unwrap ->$token
+print $token
+
 $intents: $discord::intent::all
 $handlers: $discord::handler::new
 
@@ -13,6 +17,9 @@ $h: $discord::handle::onmessage ->&$handlers
 $ready: *mod ./handlers/ready
 $h: $discord::handle::ready ->&$handlers
 *listen ->$ready ->$h
+
+$start: fmt "Starting"
+print $start
 
 # Start Client
 $discord::client::run ->$token ->$intents ->$handlers

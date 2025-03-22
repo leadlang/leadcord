@@ -1,13 +1,18 @@
 use interpreter::{
   tokio::sync::mpsc::UnboundedSender,
-  types::{AnyWrapper, BufValue},
+  types::{AnyWrapper, BufValue, AppliesEq, RawRTValue},
 };
 use serenity::{
-  all::{ChannelId, Context, EventHandler, GuildId, Interaction, Message, MessageId, MessageUpdateEvent, Ready, ResumedEvent},
+  all::{
+    ChannelId, Context, EventHandler, GuildId, Interaction, Message, MessageId, MessageUpdateEvent,
+    Ready, ResumedEvent,
+  },
   async_trait,
 };
-use std::pin::Pin;
 use std::future::Future;
+use std::pin::Pin;
+
+use crate::onready::OnReady;
 
 macro_rules! generates {
   ($($x:ident),*) => {
@@ -24,64 +29,80 @@ macro_rules! generates {
 }
 
 macro_rules! methods {
-  (m $($x:ident, $($y:ty),+);*) => {
+  (m $($x:ident, $s:ident, $($y:ty),+);*) => {
     $(
-      methods! { $x, $($y),* }
+      methods! { $x, $s, $($y),* }
     )*
   };
 
-  ($x:ident, $a:ty) => {
+  ($x:ident, $s:ident, $a:ty) => {
     fn $x<'life0, 'async_trait>(&'life0 self, ctx: Context, a: $a)
-    -> Pin<Box<dyn Future<Output = ()> + Send + 'async_trait>> 
+    -> Pin<Box<dyn Future<Output = ()> + Send + 'async_trait>>
       where
       'life0: 'async_trait,
       Self: 'async_trait,
     {
       Box::pin(async move {
         if let Some(x) = &self.$x {
-          let _ = x.send(BufValue::Runtime(AnyWrapper(Box::new((ctx, a)))));
+          let val = BufValue::RuntimeRaw("runtime", AppliesEq(RawRTValue::RT(Box::new(
+            $s::new(ctx, a)
+          ))));
+
+          let _ = x.send(val);
         }
       })
     }
   };
-  ($x:ident, $a:ty, $b:ty) => {
-    fn $x<'life0, 'async_trait>(&'life0 self, ctx: Context, a: $a, b: $b) 
-    -> Pin<Box<dyn Future<Output = ()> + Send + 'async_trait>> 
+  ($x:ident, $s:ident, $a:ty, $b:ty) => {
+    fn $x<'life0, 'async_trait>(&'life0 self, ctx: Context, a: $a, b: $b)
+    -> Pin<Box<dyn Future<Output = ()> + Send + 'async_trait>>
       where
       'life0: 'async_trait,
       Self: 'async_trait,
     {
       Box::pin(async move {
         if let Some(x) = &self.$x {
-          let _ = x.send(BufValue::Runtime(AnyWrapper(Box::new((ctx, a, b)))));
+          let val = BufValue::RuntimeRaw("runtime", AppliesEq(RawRTValue::RT(Box::new(
+            $s::new(ctx, a, b)
+          ))));
+
+          let _ = x.send(val);
         }
       })
     }
   };
-  ($x:ident, $a:ty, $b:ty, $c:ty) => {
-    fn $x<'life0, 'async_trait>(&'life0 self, ctx: Context, a: $a, b: $b, c: $c) 
-    -> Pin<Box<dyn Future<Output = ()> + Send + 'async_trait>> 
+  ($x:ident, $s:ident, $a:ty, $b:ty, $c:ty) => {
+    fn $x<'life0, 'async_trait>(&'life0 self, ctx: Context, a: $a, b: $b, c: $c)
+    -> Pin<Box<dyn Future<Output = ()> + Send + 'async_trait>>
       where
       'life0: 'async_trait,
       Self: 'async_trait,
     {
       Box::pin(async move {
         if let Some(x) = &self.$x {
-          let _ = x.send(BufValue::Runtime(AnyWrapper(Box::new((ctx, a, b, c)))));
+          let val = BufValue::RuntimeRaw("runtime", AppliesEq(RawRTValue::RT(Box::new(
+            $s::new(ctx, a, b, c)
+          ))));
+
+          let _ = x.send(val);
         }
       })
     }
   };
-  ($x:ident, $a:ty, $b:ty, $c:ty, $d:ty) => {
+  ($x:ident, $s:ident, $a:ty, $b:ty, $c:ty, $d:ty) => {
     fn $x<'life0, 'async_trait>(&'life0 self, ctx: Context, a: $a, b: $b, c: $c, d: $d)
-    -> Pin<Box<dyn Future<Output = ()> + Send + 'async_trait>> 
+    -> Pin<Box<dyn Future<Output = ()> + Send + 'async_trait>>
       where
       'life0: 'async_trait,
       Self: 'async_trait,
-    { 
+    {
       Box::pin(async move {
         if let Some(x) = &self.$x {
-          let _ = x.send(BufValue::Runtime(AnyWrapper(Box::new((ctx, a, b, c, d)))));
+          let val = BufValue::RuntimeRaw("runtime", AppliesEq(RawRTValue::RT(Box::new(
+            $s::new(ctx, a, b, c, d)
+          ))));
+
+          let _ = x.send(val);
         }
       })
     }
@@ -109,12 +130,13 @@ impl EventHandler for Handler {
 
   methods! {
     m
-    ready, Ready;
-    resume, ResumedEvent;
-    shards_ready, u32;
-    message_delete, ChannelId, MessageId, Option<GuildId>;
-    message_delete_bulk, ChannelId, Vec<MessageId>, Option<GuildId>;
-    message_update, Option<Message>, Option<Message>, MessageUpdateEvent;
-    interaction_create, Interaction
+    ready, OnReady, Ready
   }
 }
+
+//     resume, ResumedEvent;
+//     shards_ready, u32;
+//     message_delete, ChannelId, MessageId, Option<GuildId>;
+//     message_delete_bulk, ChannelId, Vec<MessageId>, Option<GuildId>;
+//     message_update, Option<Message>, Option<Message>, MessageUpdateEvent;
+//     interaction_create, Interaction

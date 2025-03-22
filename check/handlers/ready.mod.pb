@@ -1,13 +1,12 @@
 declare ready
 
-fn on ->$event
+fn on ->$ready
   $s: fmt "I am online!"
   print $s
 
-  $dsc: *import leadcord
+  $ctx: $ready::getContext
+  $ctx::status::set dnd
+  $ctx::activity::set watching ->$s
 
-  $ctx: $dsc::ready::separate ->&$event
-
-  $dsc::activity::status $ctx dnd
-  $dsc::activity::set $ctx playing $s
+  drop ->$ctx
 *end

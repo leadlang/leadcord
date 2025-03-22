@@ -1,12 +1,20 @@
-use interpreter::{error, module, pkg_name, types::{AnyWrapper, BufValue}};
-use lead_lang_macros::{methods, define};
+use interpreter::{
+  error, runtime_value,
+  types::{AnyWrapper, BufValue},
+};
+use lead_lang_macros::{define, runtime_value_methods};
 use serenity::all::{ActivityData, Context};
 
-module! {
+runtime_value! {
   Ctx,
-  pkg_name! { "📦 LeadCord / Context" }
-  methods! {
-    activity::status=set_status,
+  {
+    pub ctx: Context
+  },
+  fn name(&self) -> &'static str {
+    "📦 LeadCord / Context"
+  }
+  runtime_value_methods! {
+    status::set=set_status,
     activity::set=set_activity,
     activity::reset=reset_activity,
     client::cache=cache,
@@ -14,40 +22,30 @@ module! {
   }
 }
 
-macro_rules! prelude {
-    ($x:ident, $file:ident) => {
-      {
-        let BufValue::Runtime(x) = $x else {
-          error("Cannot cast as Runtime value", $file);
-        };
-    
-        x.downcast_ref::<Context>().expect("Cannot cast to Context")
-      }
-    };
-}
-
 #[define((
   desc: "Set status of the Client",
   usage: [
     (
       desc: "Set Presence",
-      code: "activity::status $context online/dnd/idle/invisible"
+      code: "$context::status::set online/dnd/idle/invisible"
     ),
   ],
   notes: None,
   params: [
-    r"\$[a-z]* (online|dnd|idle|invisible)"
-  ]
+    r"(online|dnd|idle|invisible)"
+  ],
+  root: Some("Ctx")
 ))]
-fn set_status(event: &BufValue, status: &str) {
-  let x = prelude!(event, file);
+fn set_status(status: &str) {
+  // NOTE: Impossible to fail
+  let x = me.ctx.as_ref().unwrap();
 
   match status {
     "online" => x.online(),
     "dnd" => x.dnd(),
     "invisible" => x.invisible(),
     "idle" => x.idle(),
-    _ => unreachable!()
+    _ => unreachable!(),
   }
 }
 
@@ -56,13 +54,15 @@ fn set_status(event: &BufValue, status: &str) {
   usage: [
     (
       desc: "Reset Presence",
-      code: "activity::reset $context activity_type $data"
+      code: "$context::status::reset"
     ),
   ],
-  notes: None
+  notes: None,
+  root: Some("Ctx")
 ))]
-fn reset_activity(event: &BufValue) {
-  let x = prelude!(event, file);
+fn reset_activity() {
+  // NOTE: Impossible to fail
+  let x = me.ctx.as_ref().unwrap();
 
   x.set_activity(None);
 }
@@ -72,18 +72,20 @@ fn reset_activity(event: &BufValue) {
   usage: [
     (
       desc: "Set Activity",
-      code: "activity::set $context activity_type $data"
+      code: "$context::activity::set activity_type ->$data"
     ),
   ],
   notes: Some(
-    "This function does not move $text\nTypes of activity: `streaming`, `competiting`, `playing, `listening`, `watching`, `custom`\n"
+    "**activity_type**: `streaming`, `competiting`, `playing, `listening`, `watching`, `custom`\n"
   ),
   params: [
-    r"\$[a-z0-9_]* (streaming|competiting|playing|listening|watching|custom) \$[a-z0-9_]*"
-  ]
+    r"(streaming|competiting|playing|listening|watching|custom) ->\$[a-z0-9_]*"
+  ],
+  root: Some("Ctx")
 ))]
-fn set_activity(event: &BufValue, activity: &str, data: &BufValue) {
-  let x = prelude!(event, file);
+fn set_activity(activity: &str, data: BufValue) {
+  // NOTE: Impossible to fail
+  let x = me.ctx.as_ref().unwrap();
 
   if activity == "streaming" {
     let BufValue::Array(vect) = &data else {
@@ -112,14 +114,14 @@ fn set_activity(event: &BufValue, activity: &str, data: &BufValue) {
   let BufValue::Str(name) = data else {
     error("Activity data must be STRING", file);
   };
-  
+
   let data: ActivityData = match activity {
     "competiting" => ActivityData::competing(name),
     "playing" => ActivityData::playing(name),
     "listening" => ActivityData::listening(name),
     "watching" => ActivityData::watching(name),
     "custom" => ActivityData::custom(name),
-    _ => unreachable!("Unknown activity, provided")
+    _ => unreachable!("Unknown activity, provided"),
   };
 
   x.set_activity(Some(data));
@@ -130,13 +132,15 @@ fn set_activity(event: &BufValue, activity: &str, data: &BufValue) {
   usage: [
     (
       desc: "This stores cache into $cache variable",
-      code: "$cache: client::cache $ctx"
+      code: "$context::client::cache"
     ),
   ],
-  notes: None
+  notes: None,
+  root: Some("Ctx")
 ))]
-fn cache(event: &BufValue) -> BufValue {
-  let x = prelude!(event, file);
+fn cache() -> BufValue {
+  // NOTE: Impossible to fail
+  let x = me.ctx.as_ref().unwrap();
 
   BufValue::Runtime(AnyWrapper(Box::new(x.cache.clone())))
 }
@@ -146,13 +150,15 @@ fn cache(event: &BufValue) -> BufValue {
   usage: [
     (
       desc: "This returns you a list of http endpoints that you can call",
-      code: "$http: client::http $ctx"
+      code: "$http: $context::client::http"
     ),
   ],
-  notes: None
+  notes: None,
+  root: Some("Ctx")
 ))]
-fn http(event: &BufValue) -> BufValue {
-  let x = prelude!(event, file);
+fn http() -> BufValue {
+  // NOTE: Impossible to fail
+  let x = me.ctx.as_ref().unwrap();
 
   BufValue::Runtime(AnyWrapper(Box::new(x.http.clone())))
 }

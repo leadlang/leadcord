@@ -1,3 +1,3 @@
-mod get;
+mod ready;
 
-pub use get::ReadyReader;
+pub use ready::OnReady;

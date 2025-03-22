@@ -1,8 +1,8 @@
-use interpreter::{module, pkg_name};
-use lead_lang_macros::{methods, define};
-use interpreter::types::{BufValue, AppliesEq};
 use crate::Handler;
 use interpreter::tokio::sync::mpsc::unbounded_channel;
+use interpreter::types::{AppliesEq, BufValue};
+use interpreter::{module, pkg_name};
+use lead_lang_macros::{define, methods};
 
 macro_rules! modifier {
   ($($x:ident, $y:ident, $desc:literal, $code:literal);*) => {
@@ -51,14 +51,14 @@ module! {
 }
 
 modifier! {
-  a, 
-  onmessage, 
+  a,
+  onmessage,
   "Get listener to attach to onmessage",
   "$onmessage: handle::onmessage ->$handler";
-  
-  b, 
-  interaction_create, 
-  "Get listener to attach to interaction_create", 
+
+  b,
+  interaction_create,
+  "Get listener to attach to interaction_create",
   "$interaction_create: handle::interaction_create ->$handler";
 
   c,
